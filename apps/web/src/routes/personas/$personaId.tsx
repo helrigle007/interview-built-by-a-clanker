@@ -39,7 +39,7 @@ function PersonaDetailPage() {
 
   const toggleFavorite = useMutation({
     mutationFn: () =>
-      !isFavorited
+      isFavorited
         ? api.delete(`/favorites/${personaId}`)
         : api.post("/favorites", { personaId }),
     onSuccess: () => {
@@ -174,6 +174,7 @@ function PersonaDetailPage() {
                 <button
                   onClick={() => toggleFavorite.mutate()}
                   disabled={toggleFavorite.isPending}
+                  aria-label="Toggle favorite"
                   className="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   <svg
