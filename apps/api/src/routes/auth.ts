@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import rateLimit from "@fastify/rate-limit";
 import { registerSchema, loginSchema, type AuthResponse } from "@acme/shared";
 import { db } from "../db.js";
 import { authenticate } from "../middleware/auth.js";
@@ -16,6 +17,9 @@ function simpleHash(password: string): string {
 }
 
 export async function authRoutes(app: FastifyInstance) {
+  // global: false — only routes that opt in via config.rateLimit are limited.
+  await app.register(rateLimit, { global: false });
+
   app.post("/auth/register", async (request, reply) => {
     const parsed = registerSchema.safeParse(request.body);
     if (!parsed.success) {
@@ -24,6 +28,10 @@ export async function authRoutes(app: FastifyInstance) {
 
     const { username, email, password } = parsed.data;
 
+    // Accepted tradeoff (issue #14): this response confirms an email has an
+    // account. Kept specific because the register flow also returns a
+    // username-specific 409 (issue #13), so a generic message here would not
+    // close the enumeration channel — only make the form less usable.
     if (db.users.getByEmail(email)) {
       return reply.status(409).send({ error: "Email already registered" });
     }
@@ -49,7 +57,12 @@ export async function authRoutes(app: FastifyInstance) {
     return reply.status(201).send(response);
   });
 
-  app.post("/auth/login", async (request, reply) => {
+  app.post(
+    "/auth/login",
+    // Per-IP limit to slow credential brute-forcing. 10/min is generous for a
+    // human retyping a password and useless for a dictionary run.
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (request, reply) => {
     const parsed = loginSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: parsed.error.flatten() });
