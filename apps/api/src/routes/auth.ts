@@ -1,21 +1,22 @@
 import type { FastifyInstance } from "fastify";
+import bcrypt from "bcryptjs";
 import { registerSchema, loginSchema, type AuthResponse } from "@acme/shared";
 import { db } from "../db.js";
 import { authenticate } from "../middleware/auth.js";
 
 let userCounter = 0;
 
-function simpleHash(password: string): string {
-  let hash = 0;
-  for (let i = 0; i < password.length; i++) {
-    const char = password.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0;
-  }
-  return `hashed_${hash}`;
-}
+const BCRYPT_ROUNDS = 10;
+const TOKEN_EXPIRY = "24h";
 
 export async function authRoutes(app: FastifyInstance) {
+  function signToken(user: { id: string; email: string }): string {
+    return app.jwt.sign(
+      { id: user.id, email: user.email },
+      { expiresIn: TOKEN_EXPIRY }
+    );
+  }
+
   app.post("/auth/register", async (request, reply) => {
     const parsed = registerSchema.safeParse(request.body);
     if (!parsed.success) {
@@ -33,12 +34,11 @@ export async function authRoutes(app: FastifyInstance) {
       id,
       username,
       email,
-      passwordHash: simpleHash(password),
+      passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
     });
 
-    const token = app.jwt.sign({ id: user.id, email: user.email });
     const response: AuthResponse = {
-      token,
+      token: signToken(user),
       user: { id: user.id, username: user.username, email: user.email },
     };
 
@@ -54,14 +54,13 @@ export async function authRoutes(app: FastifyInstance) {
     const { email, password } = parsed.data;
     const user = db.users.getByEmail(email);
 
-    if (!user || user.passwordHash !== simpleHash(password)) {
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return reply.status(401).send({ error: "Invalid email or password" });
     }
 
-    const token = app.jwt.sign({ id: user.id, email: user.email });
-    const response = {
-      token,
-      user: { id: user.id, email: user.email },
+    const response: AuthResponse = {
+      token: signToken(user),
+      user: { id: user.id, username: user.username, email: user.email },
     };
 
     return response;
