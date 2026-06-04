@@ -28,6 +28,10 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.status(409).send({ error: "Email already registered" });
     }
 
+    if (db.users.getByUsername(username)) {
+      return reply.status(409).send({ error: "Username already taken" });
+    }
+
     const id = `user-${++userCounter}`;
     const user = db.users.create({
       id,
