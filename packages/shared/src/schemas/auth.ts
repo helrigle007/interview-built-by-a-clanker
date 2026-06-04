@@ -9,19 +9,19 @@ export const registerSchema = z.object({
       /^[A-Za-z0-9_-]+$/,
       "Username can only contain letters, numbers, underscores, and hyphens"
     ),
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   password: z
     .string()
     .min(6, "Password must be at least 6 characters")
-    // 72 bytes is bcrypt's input limit; capping here keeps a future move to
-    // bcrypt from silently truncating passwords.
+    // 72 bytes is bcrypt's input limit; without the cap longer passwords
+    // would be silently truncated by the hash.
     .max(72, "Password must be at most 72 characters"),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   password: z.string(),
 });
 

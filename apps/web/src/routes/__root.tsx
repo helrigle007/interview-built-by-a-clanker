@@ -13,7 +13,7 @@ function RootLayout() {
   const router = useRouter();
 
   const { data: cart } = useQuery({
-    queryKey: ["cart-count"],
+    queryKey: ["cart"],
     queryFn: () => api.get<Cart>("/cart"),
     enabled: !!user,
   });
