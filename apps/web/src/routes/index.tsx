@@ -6,7 +6,7 @@ import { PersonaCard } from "~/components/PersonaCard";
 import { SearchBar } from "~/components/SearchBar";
 import { FilterPanel } from "~/components/FilterPanel";
 
-interface SearchParams {
+export interface SearchParams {
   q?: string;
   specialty?: string;
   tier?: string;
@@ -40,7 +40,7 @@ function BrowsePage() {
   if (search.sort) queryString.set("sort", search.sort);
 
   const { data: personas = [], isLoading } = useQuery({
-    queryKey: ["personas"],
+    queryKey: ["personas", search],
     queryFn: () => {
       const qs = queryString.toString();
       return api.get<Persona[]>(`/personas${qs ? `?${qs}` : ""}`);
