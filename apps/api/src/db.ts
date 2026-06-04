@@ -362,7 +362,7 @@ export const db = {
       }
 
       if (filters.minPrice !== undefined) {
-        results = results.filter((p) => p.price <= filters.minPrice!);
+        results = results.filter((p) => p.price >= filters.minPrice!);
       }
 
       if (filters.maxPrice !== undefined) {
@@ -396,6 +396,12 @@ export const db = {
     },
     getByEmail(email: string): StoredUser | undefined {
       return Array.from(users.values()).find((u) => u.email === email);
+    },
+    getByUsername(username: string): StoredUser | undefined {
+      const lowered = username.toLowerCase();
+      return Array.from(users.values()).find(
+        (u) => u.username.toLowerCase() === lowered
+      );
     },
     create(user: StoredUser): StoredUser {
       users.set(user.id, user);
