@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import { getJwtSecret } from "./config.js";
 import { personaRoutes } from "./routes/personas.js";
 import { authRoutes } from "./routes/auth.js";
 import { cartRoutes } from "./routes/cart.js";
@@ -14,7 +15,7 @@ await app.register(cors, {
   credentials: true,
   methods: ["GET", "POST", "PUT", "OPTIONS"],
 });
-await app.register(jwt, { secret: "agentic-personas-dev-secret" });
+await app.register(jwt, { secret: getJwtSecret() });
 
 await app.register(personaRoutes);
 await app.register(authRoutes);
