@@ -63,9 +63,15 @@ function RegisterPage() {
               onChange={(e) => setUsername(e.target.value)}
               required
               minLength={3}
+              maxLength={30}
+              pattern="[A-Za-z0-9_\-]+"
+              title="Letters, numbers, underscores, and hyphens only"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               placeholder="Your username"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              3-30 characters. Letters, numbers, underscores, and hyphens only.
+            </p>
           </div>
 
           <div>
@@ -100,6 +106,7 @@ function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
+              maxLength={72}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               placeholder="Min 6 characters"
             />
